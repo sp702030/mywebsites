@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Parking - Smart Parking System</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* THEME (embedded) */
+  :root{--accent:#ea5c2a;--accent-dark:#d34f1f;--bg-dark:#071026;--card-dark:#071828;--text:#e6f0fb;--paper:#fcfaff}
+  *{box-sizing:border-box;font-family:"Poppins",sans-serif;margin:0;padding:0}
+  body{min-height:100vh;background:linear-gradient(180deg,var(--bg-dark),#03121a);color:var(--text);transition:background .2s,color .2s}
+  header{padding:12px 6%;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(90deg, rgba(0,0,0,0.28), rgba(0,0,0,0.12));}
+  .nav-right{display:flex;gap:10px;align-items:center}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:10px;border:1px solid #183140;margin:12px}
+  .wrap{display:grid;grid-template-columns:1fr 360px;gap:16px;padding:18px 6%}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .slot{padding:12px;border-radius:8px;text-align:center;cursor:pointer;font-weight:700}
+  .slot.free{background: linear-gradient(180deg, rgba(10,210,215,0.06), rgba(10,210,215,0.03)); color:#bff2ec}
+  .slot.booked{background: linear-gradient(180deg, rgba(255,193,7,0.06), rgba(255,170,0,0.03)); color:#fff3cd}
+  .slot.paid{background: linear-gradient(180deg, rgba(9,102,255,0.06), rgba(9,80,220,0.03)); color:#e6f0ff}
+  .slot.completed{background: linear-gradient(180deg, rgba(230,0,0,0.06), rgba(180,0,0,0.03)); color:#fff5f5}
+  label{display:block;margin-top:8px;color:inherit}
+  input,select,button{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #123242;background:transparent;color:inherit}
+  .btn-primary{background:var(--accent);color:#021;padding:10px;border-radius:8px;border:none}
+  .small{font-size:0.85rem;color:#9fc1d8}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;background:#021826;border:1px solid #12313f;margin-top:8px}
+  .action button{margin-left:8px;padding:8px 10px;border-radius:6px;border:none;cursor:pointer}
+  .pay{background:#10b981;color:#041014}
+  .remove{background:#ef4444;color:white}
+  .done{background:#64748b;color:white}
+  .backdrop{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999}
+  .modal{background:#fff;color:#001;padding:18px;border-radius:12px;width:320px;max-width:90%;text-align:center;border:2px solid var(--accent)}
+  body.light{background:#f6f8fb;color:#071014}
+  body.light .card{background:#fff;color:#071014;border:1px solid #e6eef7}
+  body.light input,body.light select,body.light button{background:#fff;color:#071014;border:1px solid #ced9e8}
+  @media(max-width:880px){ .wrap{grid-template-columns:1fr} .grid{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;gap:12px;align-items:center">
+    <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:#071014;background-image: linear-gradient(135deg,var(--accent),var(--accent-dark)), url('/mnt/data/WhatsApp Image 2025-11-20 at 12.30.35 PM.jpeg');background-size:cover;background-blend-mode:overlay">SP</div>
+    <h3>Smart Parking System</h3>
+    <div id="langLabel" class="small">EN</div>
+  </div>
+
+  <div class="nav-right">
+    <select id="langSwitch" title="Language">
+      <option value="en">English</option>
+      <option value="mr">मराठी</option>
+    </select>
+    <button id="themeToggle">Toggle Theme</button>
+    <a href="admin.html" style="text-decoration:none"><div style="background:var(--accent);padding:6px 8px;border-radius:8px;color:var(--accent-contrast);font-weight:600">Admin</div></a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h2 id="title_layout">Parking Layout & Booking</h2>
+    <p class="small" id="subtitle">Select slot, fill details and set 4-digit PIN.</p>
+
+    <div id="layoutGrid" class="grid" aria-live="polite"></div>
+    <hr style="border:none;border-top:1px solid #12323a;margin:12px 0">
+
+    <form id="bookingForm" autocomplete="off" novalidate>
+      <label id="label_slot">Slot</label>
+      <select id="slotSelect"><option value="">-- Select slot --</option></select>
+
+      <label id="label_name">Name</label>
+      <input id="nameInput" placeholder="Your name" inputmode="text" />
+
+      <label id="label_vehicle">Vehicle</label>
+      <input id="vehicleInput" placeholder="e.g. MH-12-1234" inputmode="text" />
+
+      <label id="label_phone">Phone</label>
+      <input id="phoneInput" placeholder="10-digit number" inputmode="numeric" maxlength="10" />
+
+      <label id="label_time">In-Time</label>
+      <input id="timeInput" type="time" />
+
+      <label id="label_pin">PIN (4 digits)</label>
+      <input id="pinInput" maxlength="4" placeholder="1234" inputmode="numeric" />
+
+      <button class="btn-primary" type="submit" id="bookBtn">Confirm Booking</button>
+    </form>
+
+    <div class="small note">Demo Payment: QR shows SMART PARKING SYSTEM - DEMO PAYMENT. Press Fake Pay to simulate.</div>
+  </div>
+
+  <div class="card">
+    <h2 id="title_bookings">Your Bookings</h2>
+    <div id="bookingList"></div>
+    <div id="noBookings" class="small" style="display:none">No bookings</div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="modalBack" class="backdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>SMART PARKING SYSTEM</h3>
+    <div class="small">DEMO PAYMENT</div>
+    <div class="qr" style="margin:12px auto">
+      <svg width="160" height="160"><rect width="160" height="160" fill="#fff"/><rect x="10" y="10" width="44" height="44"/><rect x="110" y="10" width="44" height="44"/><rect x="10" y="110" width="44" height="44"/></svg>
+    </div>
+    <p>Amount: ₹<span id="amt">0</span></p>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button id="doPay" class="btn-primary" style="background:#10b981;color:white">Fake Pay</button>
+      <button id="closeModal" class="remove" style="background:#ef4444;color:white">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== STRINGS (EN / MR) ===== */
+const STR = {
+  en: {
+    layoutTitle: "Parking Layout & Booking",
+    subtitle: "Select slot, fill details and set 4-digit PIN.",
+    slot: "Slot",
+    name: "Name",
+    vehicle: "Vehicle",
+    phone: "Phone",
+    time: "In-Time",
+    pin: "PIN (4 digits)",
+    confirm: "Confirm Booking",
+    noBookings: "No bookings",
+    bookingSaved: (s,n)=> `Booking saved: ${s} — ${n}`,
+    slotBookedNotif: (s,n)=> `Slot ${s} booked by ${n}`,
+    paySuccess: "Payment successful (demo)",
+    wrongPIN: "Wrong PIN",
+    checkoutDone: (s,c)=> `Checkout: ${s} • ₹${c}`
+  },
+  mr: {
+    layoutTitle: "पार्किंग लेआउट व बुकिंग",
+    subtitle: "स्लॉट निवडा, तपशील भरा आणि 4-अंकी PIN ठेवा.",
+    slot: "स्लॉट",
+    name: "नाव",
+    vehicle: "वाहन",
+    phone: "फोन",
+    time: "येण्याची वेळ",
+    pin: "PIN (4 अंक)",
+    confirm: "बुक करा",
+    noBookings: "कोणतीही बुकिंग नाही",
+    bookingSaved: (s,n)=> `बुकिंग जतन: ${s} — ${n}`,
+    slotBookedNotif: (s,n)=> `${n} यांनी ${s} बुक केले`,
+    paySuccess: "पेमेंट यशस्वी (डेमो)",
+    wrongPIN: "चुकीचा PIN",
+    checkoutDone: (s,c)=> `बाहेर निघाले: ${s} • ₹${c}`
+  }
+};
+
+const BOOK_KEY = 'book', RCP_KEY = 'rcp';
+const $ = id => document.getElementById(id);
+
+function read(k){ try{ return JSON.parse(localStorage.getItem(k))||[] }catch(e){return[]} }
+function write(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+function notify(title, text){ if(!("Notification" in window)) return; if(Notification.permission === "granted") new Notification(title,{body:text}); }
+function escapeHtml(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+
+function applyTheme(theme){ if(theme==='light') document.body.classList.add('light'); else document.body.classList.remove('light'); localStorage.setItem('theme', theme); }
+document.getElementById('themeToggle').addEventListener('click', ()=>{ const cur = localStorage.getItem('theme')||'dark'; applyTheme(cur==='dark'?'light':'dark'); });
+
+function applyLanguage(lang){
+  localStorage.setItem('lang', lang);
+  $('langLabel').innerText = lang.toUpperCase();
+  $('title_layout').innerText = STR[lang].layoutTitle;
+  $('subtitle').innerText = STR[lang].subtitle;
+  $('label_slot').innerText = STR[lang].slot;
+  $('label_name').innerText = STR[lang].name;
+  $('label_vehicle').innerText = STR[lang].vehicle;
+  $('label_phone').innerText = STR[lang].phone;
+  $('label_time').innerText = STR[lang].time;
+  $('label_pin').innerText = STR[lang].pin;
+  $('bookBtn').innerText = STR[lang].confirm;
+  $('title_bookings').innerText = lang==='en' ? 'Your Bookings' : 'तुमच्या बुकिंग्स';
+  $('noBookings').innerText = STR[lang].noBookings;
+}
+document.getElementById('langSwitch').addEventListener('change', (e)=> applyLanguage(e.target.value));
+applyTheme(localStorage.getItem('theme')||'dark');
+const initLang = localStorage.getItem('lang')||'en';
+document.getElementById('langSwitch').value = initLang; applyLanguage(initLang);
+
+const SLOTS = ['S1','S2','S3','S4','S5','S6','S7','S8'];
+
+function renderLayout(){
+  const books = read(BOOK_KEY);
+  $('layoutGrid').innerHTML = ''; $('slotSelect').innerHTML = '<option value="">-- '+STR[localStorage.getItem('lang')||'en'].slot+' --</option>';
+  SLOTS.forEach(s=>{
+    let cls = 'slot free';
+    const active = books.find(b=>b.slot===s && b.status!=='Completed');
+    const done = books.find(b=>b.slot===s && b.status==='Completed');
+    if(done) cls='slot completed';
+    else if(active) cls = active.paid ? 'slot paid' : 'slot booked';
+    const d=document.createElement('div'); d.className=cls; d.innerText=s;
+    d.addEventListener('click', ()=> $('slotSelect').value = s);
+    $('layoutGrid').appendChild(d);
+    const opt = document.createElement('option'); opt.value=s; opt.textContent=s; $('slotSelect').appendChild(opt);
+  });
+}
+
+function renderBookings(){
+  const arr = read(BOOK_KEY);
+  const wrap = $('bookingList'); wrap.innerHTML = '';
+  if(arr.length===0){ $('noBookings').style.display='block'; return; } $('noBookings').style.display='none';
+  arr.forEach((b,i)=>{
+    const row=document.createElement('div'); row.className='row';
+    const left=document.createElement('div'); left.innerHTML=`<strong>${b.slot}</strong> • ${escapeHtml(b.name)} <div class="small">Veh: ${escapeHtml(b.vehicle)} • ${b.status} ${b.paid? '• Paid':''}</div>`;
+    const right=document.createElement('div'); right.className='action';
+    if(!b.paid && b.status!=='Completed'){ const pay=document.createElement('button'); pay.className='pay'; pay.textContent='Pay'; pay.onclick = ()=> openPay(i); right.appendChild(pay); } else if(b.paid){ const paidBtn=document.createElement('button'); paidBtn.className='done'; paidBtn.textContent='Paid'; right.appendChild(paidBtn); }
+    if(b.status!=='Completed'){ const rem=document.createElement('button'); rem.className='remove'; rem.textContent='Remove'; rem.onclick = ()=> checkout(i); right.appendChild(rem); } else { const done=document.createElement('button'); done.className='done'; done.textContent='Done • ₹'+(b.finalCost||0); right.appendChild(done); }
+    row.appendChild(left); row.appendChild(right); wrap.appendChild(row);
+  });
+}
+
+/* sanitizers */
+const nameInput = $('nameInput'), vehicleInput = $('vehicleInput'), phoneInput = $('phoneInput'), pinInput = $('pinInput');
+nameInput.addEventListener('input', ()=> { nameInput.value = nameInput.value.replace(/[^A-Za-z\u0900-\u097F\s]/g, '').replace(/\s{2,}/g,' '); });
+vehicleInput.addEventListener('input', ()=> { let v = vehicleInput.value.toUpperCase(); v = v.replace(/[^A-Z0-9\-]/g,''); vehicleInput.value = v; });
+phoneInput.addEventListener('input', ()=> { phoneInput.value = phoneInput.value.replace(/\D/g,'').slice(0,10); });
+pinInput.addEventListener('input', ()=> { pinInput.value = pinInput.value.replace(/\D/g,'').slice(0,4); });
+
+[nameInput, vehicleInput, phoneInput, pinInput].forEach(inp=>{
+  inp.addEventListener('paste', (e)=>{ e.preventDefault(); const text = (e.clipboardData||window.clipboardData).getData('text')||''; if(inp===nameInput){ const clean = text.replace(/[^A-Za-z\u0900-\u097F\s]/g,''); document.execCommand('insertText', false, clean); } else if(inp===vehicleInput){ const clean = text.toUpperCase().replace(/[^A-Z0-9\-]/g,''); document.execCommand('insertText', false, clean); } else if(inp===phoneInput){ const clean = text.replace(/\D/g,'').slice(0,10); document.execCommand('insertText', false, clean); } else if(inp===pinInput){ const clean = text.replace(/\D/g,'').slice(0,4); document.execCommand('insertText', false, clean); } });
+});
+
+$('bookingForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const lang = localStorage.getItem('lang')||'en';
+  const slot = $('slotSelect').value.trim();
+  const name = nameInput.value.trim();
+  const vehicle = vehicleInput.value.trim();
+  const phone = phoneInput.value.trim();
+  const time = $('timeInput').value;
+  const pin = pinInput.value.trim();
+
+  if(!slot){ alert(lang==='en'?'Please choose a slot.':'कृपया स्लॉट निवडा.'); $('slotSelect').focus(); return; }
+  if(!name || name.length<2){ alert(lang==='en'?'Please enter a valid name.':'कृपया योग्य नाव टाका.'); nameInput.focus(); return; }
+  if(!vehicle || vehicle.length<4){ alert(lang==='en'?'Please enter a valid vehicle number.':'कृपया वाहन क्रमांक बरोबर टाका.'); vehicleInput.focus(); return; }
+  if(!/^\d{10}$/.test(phone)){ alert(lang==='en'?'Phone must be 10 digits.':'फोन 10 अंकांचे असावे.'); phoneInput.focus(); return; }
+  if(!/^\d{4}$/.test(pin)){ alert(lang==='en'?'PIN must be 4 digits.':'PIN 4 अंकांचे असावे.'); pinInput.focus(); return; }
+  if(!time){ alert(lang==='en'?'Select in-time.':'वेळ निवडा.'); $('timeInput').focus(); return; }
+
+  const books = read(BOOK_KEY);
+  if(books.some(b=>b.slot===slot && b.status!=='Completed')){ alert(lang==='en'?'Slot already booked.':'हा स्लॉट आधीच बुक आहे.'); return; }
+
+  const now = Date.now();
+  const obj = { slot, name, vehicle, phone, time, pin, createdAt: now, status:'Parked', paid:false, paymentId:null, paidAt:null, finalCost:null, checkout:null, parkedHours:null };
+  books.push(obj); write(BOOK_KEY, books);
+  this.reset(); $('slotSelect').value='';
+  renderLayout(); renderBookings();
+  alert( lang==='en' ? STR.en.bookingSaved(slot,name) : STR.mr.bookingSaved(slot,name) );
+  if(Notification && Notification.permission === 'granted'){ notify('Booking', lang==='en'?STR.en.slotBookedNotif(slot,name):STR.mr.slotBookedNotif(slot,name)); }
+});
+
+let currentPayIndex = null;
+function calcCost(ms){ const hrs = (Date.now()-Number(ms))/(1000*60*60); if(hrs<1) return 50; if(hrs<2) return 80; if(hrs<3) return 100; return 120; }
+function openPay(i){ currentPayIndex = i; const b = read(BOOK_KEY)[i]; $('amt').innerText = calcCost(b.createdAt); $('modalBack').style.display='flex'; }
+$('closeModal').addEventListener('click', ()=>{ $('modalBack').style.display='none'; currentPayIndex=null; });
+$('doPay').addEventListener('click', ()=>{
+  if(currentPayIndex===null) return;
+  const books = read(BOOK_KEY); const b = books[currentPayIndex];
+  b.paid = true; b.paymentId = 'DEMO-PAY-' + Date.now(); b.paidAt = Date.now();
+  books[currentPayIndex] = b; write(BOOK_KEY, books);
+  $('modalBack').style.display='none'; currentPayIndex=null;
+  renderBookings(); renderLayout();
+  const lang = localStorage.getItem('lang')||'en';
+  alert(lang==='en'?STR.en.paySuccess:STR.mr.paySuccess);
+  if(Notification && Notification.permission === 'granted') notify('Payment', lang==='en'?STR.en.paySuccess:STR.mr.paySuccess);
+});
+
+function checkout(i){
+  const books = read(BOOK_KEY);
+  const b = books[i];
+  if(!b) return alert('Booking not found');
+  const lang = localStorage.getItem('lang')||'en';
+  const entered = prompt(lang==='en' ? 'Enter 4-digit PIN:' : '4 अंकी PIN लिहा:');
+  if(entered === null) return;
+  if(entered.trim() !== (b.pin || '')){ alert(lang==='en'?STR.en.wrongPIN:STR.mr.wrongPIN); if(Notification && Notification.permission === 'granted') notify('Checkout', lang==='en'?STR.en.wrongPIN:STR.mr.wrongPIN); return; }
+
+  const now = Date.now(); const final = calcCost(b.createdAt);
+  b.status = 'Completed'; b.checkout = now; b.finalCost = final; b.parkedHours = Number(((now - b.createdAt)/(1000*60*60)).toFixed(2));
+  books[i] = b; write(BOOK_KEY, books);
+
+  const receipts = read(RCP_KEY);
+  const receiptObj = { id: b.createdAt, slot: b.slot, name: b.name, vehicle: b.vehicle, phone: b.phone, inTime: new Date(b.createdAt).toLocaleString(), outTime: new Date(b.checkout).toLocaleString(), parkedHours: b.parkedHours, cost: b.finalCost, paid: b.paid, paymentId: b.paymentId || '' };
+  receipts.push(receiptObj); write(RCP_KEY, receipts);
+
+  renderLayout(); renderBookings();
+  alert(lang==='en'?STR.en.checkoutDone(b.slot,b.finalCost):STR.mr.checkoutDone(b.slot,b.finalCost));
+  if(Notification && Notification.permission === 'granted') notify('Checkout', lang==='en'?STR.en.checkoutDone(b.slot,b.finalCost):STR.mr.checkoutDone(b.slot,b.finalCost));
+
+  if(typeof downloadAndOpenReceipt === 'function') downloadAndOpenReceipt(receiptObj);
+}
+
+function downloadAndOpenReceipt(b){
+  const RECEIPT_ORG = "Smart Parking Team — Pratik Metkari, Yash Mane, Kedar Mede";
+  const RECEIPT_NOTE = "Project: Smart Parking System • Dept: Artificial Intelligence & Data Science";
+  const headerFont = "Poppins";
+  const bodyFont = "Roboto Slab";
+  const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Receipt - ${escapeHtml(b.slot)} - ${escapeHtml(b.name)}</title><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(headerFont)}:wght@400;600&family=${encodeURIComponent(bodyFont)}:wght@300;400;600&display=swap" rel="stylesheet"><style>body{font-family:'${bodyFont}',serif;background:#fff;color:#001;padding:24px}.box{max-width:720px;margin:auto;border:1px solid #e6edf3;padding:20px;border-radius:10px}h1{font-family:'${headerFont}',sans-serif;text-align:center;margin-bottom:4px}.meta{color:#56626b;text-align:center;margin-bottom:18px}table{width:100%;border-collapse:collapse;margin-top:6px}td{padding:10px;border-bottom:1px solid #f1f5f9}td.label{width:36%;color:#374151;font-weight:600}.foot{margin-top:14px;padding-top:10px;border-top:1px dashed #e6edf3;color:#475569}.big{font-size:1.15rem;font-weight:700}</style></head><body><div class="box"><h1>SMART PARKING SYSTEM</h1><div class="meta">Receipt • ${new Date().toLocaleString()}</div><table><tr><td class="label">Receipt ID</td><td>${b.id}</td></tr><tr><td class="label">Name</td><td>${escapeHtml(b.name)}</td></tr><tr><td class="label">Vehicle</td><td>${escapeHtml(b.vehicle)}</td></tr><tr><td class="label">Slot</td><td>${escapeHtml(b.slot)}</td></tr><tr><td class="label">In-Time</td><td>${escapeHtml(b.inTime)}</td></tr><tr><td class="label">Out-Time</td><td>${escapeHtml(b.outTime)}</td></tr><tr><td class="label">Parked Hours</td><td>${b.parkedHours || '-'}</td></tr><tr><td class="label">Total Cost</td><td class="big">₹ ${b.cost || 0}</td></tr><tr><td class="label">Payment Status</td><td>${b.paid ? 'Paid' : 'Not Paid'}</td></tr><tr><td class="label">Payment ID</td><td>${b.paymentId || '-'}</td></tr></table><div class="foot"><div>${escapeHtml(RECEIPT_ORG)}</div><div>${escapeHtml(RECEIPT_NOTE)}</div><div style="margin-top:6px;font-size:0.9rem;color:#6b7280">This is a demo receipt generated by the Smart Parking System.</div></div></div></body></html>`;
+  try{
+    const win = window.open();
+    if(win){ win.document.write(html); win.document.close(); } else { alert('New tab blocked; downloading receipt file.'); }
+  }catch(e){ console.error(e); }
+  try{
+    const blob = new Blob([html], {type:'text/html'}); const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `receipt_${b.slot}_${b.id}.html`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }catch(e){ console.error('Download failed', e); }
+}
+
+renderLayout(); renderBookings();
+if("Notification" in window && Notification.permission === "default"){ Notification.requestPermission().then(p=>{ if(p==='granted') console.log('Notifications allowed'); }); }
+</script>
+</body>
+</html>

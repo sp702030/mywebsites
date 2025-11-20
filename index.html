@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart Parking System — Home</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent: #ea5c2a; --accent-2: #d34f1f; --bg: #0b0f12; --card-bg: rgba(255,255,255,0.03);
+    --muted: #9fb7c9; --paper: #fcfaff; --radius: 14px; --shadow: 0 12px 30px rgba(2,6,23,0.6); --max-width:1100px;
+  }
+  *{box-sizing:border-box;font-family:'Poppins',sans-serif;margin:0;padding:0}
+  body{ background: linear-gradient(180deg,var(--bg), #07101a); color: var(--paper); min-height:100vh; -webkit-font-smoothing:antialiased; line-height:1.45; }
+
+  .site-nav{ max-width:var(--max-width); margin:18px auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; }
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{ width:60px;height:60px;border-radius:12px;
+    background-image: linear-gradient(135deg,var(--accent),var(--accent-2)), url('/mnt/data/WhatsApp Image 2025-11-20 at 12.30.35 PM.jpeg');
+    background-size:cover;background-blend-mode:overlay; display:flex;align-items:center;justify-content:center;font-weight:700;color:#071014; box-shadow:var(--shadow); font-size:1rem;
+  }
+  .brand h1{font-size:1rem} .brand p{font-size:.82rem;color:var(--muted);margin-top:4px}
+
+  .menu{display:flex;align-items:center;gap:10px}
+  .menu a{color:var(--paper);text-decoration:none;padding:8px 10px;border-radius:8px;font-weight:600}
+  .menu a:hover{background:rgba(255,255,255,0.03)}
+  .menu .cta{background:var(--accent);color:#071014;box-shadow:0 8px 18px rgba(234,92,42,0.12)}
+
+  .hero{ max-width:var(--max-width); margin:20px auto; display:grid; grid-template-columns: 1fr 380px; gap:28px; align-items:start; padding:18px; }
+  .card{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius: var(--radius); padding:22px; box-shadow: var(--shadow); border:1px solid rgba(255,255,255,0.03); }
+  .kicker{ color:var(--muted); font-weight:600; font-size:.9rem; margin-bottom:8px }
+  h2{ font-size:1.6rem; margin-bottom:12px; line-height:1.05; color: #f3fbff }
+  p.lead{ color:#dfeff8; margin-bottom:18px; font-size:1rem }
+  .cta-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap }
+  .btn{ background:var(--accent); color:#071014;padding:10px 14px;border-radius:10px;border:none;font-weight:700;cursor:pointer }
+  .btn.ghost{ background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--paper) }
+
+  .side{ display:flex;flex-direction:column;gap:12px; }
+  .stat-card{ padding:14px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03) }
+  .stat-title{ font-size:0.95rem;color:var(--muted); margin-bottom:8px }
+  .stat-big{ font-weight:800;font-size:1.25rem }
+
+  .about{ max-width:var(--max-width); margin:16px auto; padding:18px; border-radius:12px; color:var(--muted) }
+
+  @media(max-width:980px){ .hero{ grid-template-columns: 1fr; padding:12px } .menu{ display:none } }
+  .btn:hover{ transform:translateY(-3px); transition:transform .15s }
+</style>
+</head>
+<body>
+
+<nav class="site-nav" role="navigation" aria-label="Main">
+  <div class="brand">
+    <div class="logo">SP</div>
+    <div>
+      <h1>Smart Parking System</h1>
+      <p>Park Easy · Pay Easy · Go Easy</p>
+    </div>
+  </div>
+
+  <div class="menu" role="menubar" aria-label="Main menu">
+    <a href="index.html" role="menuitem">Home</a>
+    <!-- changed: About now links to about.html (separate page) -->
+    <a href="about.html" role="menuitem">About Us</a>
+    <a href="#" id="instrBtn" role="menuitem">Instructions</a>
+    <a href="parking.html" class="cta" role="menuitem">Book Slot</a>
+    <a href="admin.html" role="menuitem">Admin</a>
+  </div>
+</nav>
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="card">
+    <div class="kicker">Smart Parking • Modern</div>
+    <h2 id="hero-title">Reserve a slot in seconds — smooth check-in, quick checkout.</h2>
+    <p class="lead">This demo app manages parking reservations, payments and receipts locally (browser). Use the Admin panel to export CSVs and view analytics.</p>
+
+    <div class="cta-row">
+      <a class="btn" href="parking.html">Book a Slot</a>
+      <button id="learnBtn" class="btn ghost">Learn More</button>
+    </div>
+
+    <div style="margin-top:18px">
+      <h4 style="margin-bottom:8px">Quick Features</h4>
+      <ul style="margin-left:18px;color:var(--muted)">
+        <li>Instant booking with 4-digit PIN</li>
+        <li>Demo payment (Fake Pay) & receipt generation</li>
+        <li>Admin exports bookings & receipts as CSV</li>
+      </ul>
+    </div>
+  </div>
+
+  <aside class="side">
+    <div class="stat-card">
+      <div class="stat-title">Today's Revenue</div>
+      <div class="stat-big" id="todayRevenue">₹ 0</div>
+      <div style="margin-top:8px;color:var(--muted);font-size:0.92rem">Calculated from receipts (localStorage)</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Active Slots</div>
+      <div class="stat-big" id="activeSlots">0</div>
+      <div style="margin-top:8px;color:var(--muted);font-size:0.92rem">Currently parked (not checked out)</div>
+    </div>
+
+    <div class="stat-card" aria-hidden>
+      <div style="font-weight:700">Quick Links</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <a href="parking.html" style="padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.02);text-decoration:none;color:var(--paper)">Go to Parking</a>
+        <a href="admin.html" style="padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.02);text-decoration:none;color:var(--paper)">Admin Panel</a>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<section class="about card" aria-label="About this project">
+  <h3>About</h3>
+  <p class="muted">To transform traditional parking into an intelligent, automated, and user-friendly experience using real-time technology, efficient data management, and smart automation..</p>
+</section>
+
+<!-- Instructions modal (same inline modal as earlier) -->
+<div id="modal" style="display:none; position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:999">
+  <div style="background:#fff;color:#041018;padding:18px;border-radius:12px;max-width:720px;margin:auto">
+    <h3>Instructions</h3>
+    <p style="color:#475569">Short steps to use the demo (Booking → Fake Pay → Checkout → Receipt → Admin export).</p>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+      <button id="closeModal" class="btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function read(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; } catch(e){ return []; } }
+function computeTodayRevenue(){
+  const receipts = read('rcp'); if(!Array.isArray(receipts) || receipts.length === 0) return 0;
+  const today = new Date(); today.setHours(0,0,0,0); let rev = 0;
+  receipts.forEach(r => {
+    let out = r.outTime ? new Date(r.outTime) : null;
+    if(!out || isNaN(out)) out = r.checkout ? new Date(Number(r.checkout)) : null;
+    if(out && out >= today) rev += Number(r.cost || 0);
+  });
+  return rev;
+}
+function computeActiveSlots(){ const bookings = read('book'); if(!Array.isArray(bookings)) return 0; return bookings.filter(b => b.status && b.status !== 'Completed').length; }
+function updateStats(){ document.getElementById('todayRevenue').innerText = '₹ ' + computeTodayRevenue(); document.getElementById('activeSlots').innerText = computeActiveSlots(); }
+updateStats(); setInterval(updateStats, 3000);
+
+document.getElementById('instrBtn').addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('modal').style.display = 'flex'; });
+document.getElementById('closeModal').addEventListener('click', ()=> document.getElementById('modal').style.display = 'none');
+document.getElementById('learnBtn').addEventListener('click', ()=> document.querySelector('.about').scrollIntoView({behavior:'smooth', block:'center'}));
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>About Us — Smart Parking System</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --accent:#ea5c2a; --bg:#07101a; --muted:#9fb7c9; --paper:#fcfaff; --radius:12px; --shadow: 0 12px 30px rgba(0,0,0,0.6); --maxw:1000px; }
+  *{box-sizing:border-box;font-family:'Poppins',sans-serif;margin:0;padding:0}
+  body{ background: linear-gradient(180deg,var(--bg), #04101a); color:var(--paper); min-height:100vh; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:var(--maxw); margin:28px auto; padding:18px; }
+  .hero{ display:flex; gap:18px; align-items:center; }
+  .logo{ width:84px;height:84px;border-radius:12px;background-image: linear-gradient(135deg,var(--accent),#d34f1f), url('/mnt/data/WhatsApp Image 2025-11-20 at 12.30.35 PM.jpeg'); background-size:cover;background-blend-mode:overlay; box-shadow:var(--shadow); display:flex;align-items:center;justify-content:center;color:#071014;font-weight:800 }
+  h1{ font-size:1.4rem; margin-bottom:6px }
+  p.lead{ color:#dfeff8; margin-top:6px; max-width:760px }
+
+  .sections{ display:grid; grid-template-columns:1fr 340px; gap:18px; margin-top:18px; }
+  .card{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); box-shadow:var(--shadow) }
+  .card h3{ margin-bottom:8px }
+  ul{ margin-left:18px; color:var(--muted) }
+
+  .back{ margin-top:18px; display:inline-block; padding:8px 12px; border-radius:8px; background:var(--accent); color:#071014; text-decoration:none; font-weight:700 }
+
+  @media(max-width:980px){ .sections{ grid-template-columns:1fr; } .hero{ flex-direction:column; align-items:flex-start; gap:12px } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="logo">SP</div>
+    <div>
+      <h1>About — Smart Parking System</h1>
+      <p class="lead">Smart Parking System is a lightweight demo to manage parking slots for campuses and small parking areas. It focuses on quick booking, a simple PIN-based checkout, demo payments, and admin exports — all running inside the browser (localStorage) for easy testing and demonstration.</p>
+    </div>
+  </div>
+
+  <div class="sections">
+    <div>
+      <div class="card">
+        <h3>How it works — Overview</h3>
+        <ul>
+          <li><b>Booking:</b> User selects a slot, provides name, vehicle number, phone and a 4-digit PIN. Booking timestamp is saved.</li>
+          <li><b>Payment (Demo):</b> The app shows a demo QR modal — pressing <i>Fake Pay</i> marks booking as paid and stores a demo payment ID.</li>
+          <li><b>Checkout:</b> When vehicle leaves, user/admin initiates checkout — the app asks for the 4-digit PIN. On success a receipt is generated and stored.</li>
+          <li><b>Receipts & Admin:</b> Each checkout produces a receipt saved to localStorage. From Admin you can export bookings & receipts as CSV for backup or analysis.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Components</h3>
+        <ul>
+          <li><b>Parking page:</b> Layout of slots, booking form, payment modal and booking list.</li>
+          <li><b>Admin page:</b> Login-protected area (demo creds), analytics, bookings table and CSV export.</li>
+          <li><b>Home page:</b> Overview, today's revenue (calculated from receipts) and quick links.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Security & Limitations</h3>
+        <ul>
+          <li>This is a demo using browser <b>localStorage</b> — not suitable for production without a backend.</li>
+          <li>Authentication is demo-only (username/password in client). For production move to server-side auth and HTTPS.</li>
+          <li>Payments here are simulated. Integrate a real payment gateway for real transactions.</li>
+        </ul>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <h3>Technical Notes</h3>
+        <p class="muted">Receipts and bookings are JSON saved in localStorage keys: <code>rcp</code> (receipts) and <code>book</code> (bookings). CSV export converts these for offline storage.</p>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Further improvements</h3>
+        <ul>
+          <li>Move storage to server (API + DB).</li>
+          <li>Secure admin with JWT / sessions.</li>
+          <li>Integrate real payment gateway (Razorpay / Stripe).</li>
+          <li>Add user accounts and notifications (SMS/Email).</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <a class="back" href="index.html">← Back to Home</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Admin • Smart Parking (Login → Dashboard)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#ea5c2a; --accent-2:#d34f1f; --bg:#071026; --muted:#9fb7c9; --radius:12px;
+  }
+  *{box-sizing:border-box;font-family:'Poppins',sans-serif;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background: linear-gradient(180deg,var(--bg), #041226 70%);
+    color:#e6f7fb;
+    -webkit-font-smoothing:antialiased;
+    padding:20px;
+  }
+
+  /* container */
+  .wrap{ max-width:1200px; margin:0 auto; display:grid; grid-template-columns: 1fr; gap:18px; }
+
+  /* TOP BAR */
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  .brand{ display:flex; gap:12px; align-items:center; }
+  .logo{ width:56px;height:56px;border-radius:10px;background-image: linear-gradient(135deg,var(--accent),var(--accent-2)), url('/mnt/data/WhatsApp Image 2025-11-20 at 12.30.35 PM.jpeg'); background-size:cover; background-blend-mode:overlay; box-shadow:0 8px 24px rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:#071014; font-weight:800; }
+  h1{ font-size:1.05rem; }
+  .subtitle{ color:var(--muted); font-size:0.9rem; }
+
+  /* layout grid: sidebar hidden until auth */
+  .layout{ display:grid; grid-template-columns: 220px 1fr; gap:18px; align-items:start; }
+  .sidebar{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:12px; }
+  .sidebar.hidden{ display:none; }
+
+  .panel{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03); }
+
+  /* centered login overlay (visible initially) */
+  .login-overlay{
+    position:fixed; left:0; top:0; right:0; bottom:0; background:linear-gradient(180deg, rgba(2,6,23,0.65), rgba(2,6,23,0.6)); display:flex; align-items:center; justify-content:center; z-index:999;
+  }
+  .login-box{ width:460px; background:rgba(255,255,255,0.04); padding:26px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); box-shadow:0 18px 40px rgba(0,0,0,0.6); }
+  .login-box h2{ margin-bottom:6px; }
+  .login-box p{ color:var(--muted); margin-bottom:12px; }
+
+  label{ display:block; margin-top:10px; margin-bottom:6px; color:var(--muted) }
+  input{ width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:inherit }
+  .login-actions{ display:flex; gap:10px; align-items:center; margin-top:12px }
+  .btn{ padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:700 }
+  .btn.primary{ background:var(--accent); color:#071014 }
+  .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted) }
+
+  .hint{ color:var(--muted); margin-top:10px }
+
+  /* table styles */
+  #tableArea{ margin-top:10px; overflow:auto; max-height:420px; border-radius:10px; padding:8px; }
+  table{ width:100%; border-collapse:collapse; min-width:900px; }
+  th,td{ padding:10px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:left; font-size:0.95rem }
+  th{ color:var(--muted); font-weight:700 }
+  tr:hover td{ background: rgba(255,255,255,0.01) }
+
+  .badge{ padding:6px 8px; border-radius:8px; font-weight:700; font-size:0.85rem }
+  .paid{ background: linear-gradient(90deg, rgba(16,185,129,0.12), rgba(16,139,74,0.05)); color:#bbf7d0 }
+  .unpaid{ background: linear-gradient(90deg, rgba(234,92,42,0.06), rgba(234,92,42,0.02)); color:#ffd7c7 }
+
+  .hidden{ display:none !important; }
+
+  @media(max-width:980px){
+    .layout{ grid-template-columns: 1fr; }
+    #tableArea{ max-height:260px; }
+    table{ min-width:600px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">SP</div>
+      <div>
+        <h1>Admin • Smart Parking</h1>
+        <div class="subtitle">Login first to view bookings & receipts</div>
+      </div>
+    </div>
+
+    <div>
+      <button id="logoutBtn" class="btn ghost hidden">Logout</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR (hidden until login) -->
+    <aside id="sidebar" class="sidebar hidden" aria-hidden="true">
+      <div style="font-weight:700">Quick Actions</div>
+      <button id="exportBookings" class="btn primary">Export Bookings</button>
+      <button id="exportReceipts" class="btn" style="background:var(--accent-2);color:#071014">Export Receipts</button>
+      <button id="clearAll" class="btn ghost">Clear All Data</button>
+
+      <div style="margin-top:12px">
+        <div style="color:var(--muted)">Today's Revenue</div>
+        <div id="statRevenue" style="font-weight:800;margin-top:6px">₹ 0</div>
+      </div>
+
+      <div style="margin-top:8px">
+        <div style="color:var(--muted)">Total Receipts</div>
+        <div id="statRcp" style="font-weight:800;margin-top:6px">0</div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main>
+      <section class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:700">Bookings</div>
+            <div style="color:var(--muted);font-size:0.9rem">Filter and manage bookings</div>
+          </div>
+          <div>
+            <input id="filterInput" placeholder="Filter by name/slot..." style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit">
+          </div>
+        </div>
+
+        <div id="tableArea">
+          <!-- table renders here -->
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- LOGIN OVERLAY (visible initially) -->
+<div id="loginOverlay" class="login-overlay" role="dialog" aria-modal="true">
+  <div class="login-box" role="document" aria-labelledby="loginTitle">
+    <h2 id="loginTitle">Admin Login</h2>
+    <p>Enter credentials to access the admin panel.</p>
+
+    <label for="uname">Username</label>
+    <input id="uname" placeholder="Username" autocomplete="off">
+
+    <label for="pwd">Password</label>
+    <input id="pwd" type="password" placeholder="Password" autocomplete="off">
+
+    <div class="login-actions">
+      <button id="loginBtn" class="btn primary">Login</button>
+      <button id="cancelBtn" class="btn ghost">Cancel</button>
+    </div>
+
+    <div class="hint">Demo credentials: <b>pratik</b> / <b>pratik123</b></div>
+    <div id="loginMsg" style="color:#ffb3b3;margin-top:10px;display:none"></div>
+  </div>
+</div>
+
+<script>
+/* ===== keys & helpers ===== */
+const ADMIN_USER = 'pratik', ADMIN_PASS = 'pratik123';
+const BOOK_KEY = 'book', RCP_KEY = 'rcp';
+const $ = id => document.getElementById(id);
+
+function read(key){
+  try{ return JSON.parse(localStorage.getItem(key)) || []; } catch(e){ return []; }
+}
+function write(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+function escapeHtml(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+
+/* ===== render analytics & table ===== */
+function computeAnalytics(){
+  const receipts = read(RCP_KEY);
+  const today = new Date(); today.setHours(0,0,0,0);
+  let dailyRevenue = 0, totalCars = 0, sumHours = 0;
+  receipts.forEach(r => {
+    let out = r.outTime ? new Date(r.outTime) : (r.checkout? new Date(Number(r.checkout)) : null);
+    if(out && out >= today) dailyRevenue += Number(r.cost || 0);
+    totalCars += 1;
+    sumHours += Number(r.parkedHours || 0);
+  });
+  const avgHours = totalCars ? (sumHours/totalCars).toFixed(2) : '0.00';
+  return { dailyRevenue, totalCars, avgHours, receiptsCount: receipts.length };
+}
+
+function renderAnalyticsUI(){
+  const a = computeAnalytics();
+  if($('statRevenue')) $('statRevenue').innerText = '₹ ' + a.dailyRevenue;
+  if($('statRcp')) $('statRcp').innerText = a.receiptsCount;
+}
+
+function renderTable(filter=''){
+  const books = read(BOOK_KEY);
+  const rows = books.filter(b => {
+    if(!filter) return true;
+    const f = filter.toLowerCase();
+    return (b.name||'').toLowerCase().includes(f) || (b.slot||'').toLowerCase().includes(f) || (b.vehicle||'').toLowerCase().includes(f);
+  });
+
+  if(rows.length === 0){
+    $('tableArea').innerHTML = '<div style="padding:18px;color:var(--muted)">No bookings found.</div>'; return;
+  }
+
+  let html = '<table><thead><tr><th>#</th><th>Slot</th><th>Name</th><th>Vehicle</th><th>Phone</th><th>Status</th><th>Paid</th><th>Cost</th><th>In-Time</th><th>Out-Time</th></tr></thead><tbody>';
+  rows.forEach((r,i) => {
+    const paidBadge = r.paid ? '<span class="badge paid">Paid</span>' : '<span class="badge unpaid">Unpaid</span>';
+    html += `<tr>
+      <td>${i+1}</td>
+      <td>${escapeHtml(r.slot)}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.vehicle)}</td>
+      <td>${escapeHtml(r.phone)}</td>
+      <td>${r.status || '-'}</td>
+      <td>${paidBadge}</td>
+      <td>${r.finalCost || '-'}</td>
+      <td>${r.createdAt ? new Date(r.createdAt).toLocaleString() : '-'}</td>
+      <td>${r.checkout ? new Date(r.checkout).toLocaleString() : '-'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  $('tableArea').innerHTML = html;
+}
+
+/* ===== export / clear helpers ===== */
+function downloadCSV(filename, headers, rows){
+  const csv = [headers.join(',')].concat(rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','))).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+$('exportBookings')?.addEventListener('click', ()=>{
+  const books = read(BOOK_KEY);
+  if(books.length===0){ alert('No bookings to export'); return; }
+  const headers = ['Slot','Name','Vehicle','Phone','Status','Paid','PaymentID','Cost','InTime','OutTime'];
+  const rows = books.map(b => [b.slot,b.name,b.vehicle,b.phone,b.status,b.paid? 'Yes':'No', b.paymentId||'', b.finalCost||'', b.createdAt? new Date(b.createdAt).toLocaleString() : '', b.checkout? new Date(b.checkout).toLocaleString() : '']);
+  downloadCSV('bookings.csv', headers, rows); alert('Bookings exported');
+});
+$('exportReceipts')?.addEventListener('click', ()=>{
+  const r = read(RCP_KEY);
+  if(r.length===0){ alert('No receipts to export'); return; }
+  const headers = ['ReceiptID','Slot','Name','Vehicle','Phone','InTime','OutTime','ParkedHours','Cost','Paid','PaymentID'];
+  const rows = r.map(x=>[x.id,x.slot,x.name,x.vehicle,x.phone,x.inTime,x.outTime,x.parkedHours||'',x.cost,x.paid? 'Yes':'No',x.paymentId||'']);
+  downloadCSV('receipts.csv', headers, rows); alert('Receipts exported');
+});
+$('clearAll')?.addEventListener('click', ()=>{
+  if(!confirm('Clear ALL bookings and receipts? This cannot be undone.')) return;
+  localStorage.removeItem(BOOK_KEY); localStorage.removeItem(RCP_KEY);
+  renderTable(); renderAnalyticsUI();
+  alert('All data cleared.');
+});
+
+/* ===== auth gating ===== */
+function setAuthState(isAuth){
+  if(isAuth){
+    $('loginOverlay').style.display = 'none';
+    $('sidebar').classList.remove('hidden'); $('logoutBtn').classList.remove('hidden');
+    renderAnalyticsUI(); renderTable();
+  } else {
+    $('loginOverlay').style.display = 'flex';
+    $('sidebar').classList.add('hidden'); $('logoutBtn').classList.add('hidden');
+    $('tableArea').innerHTML = '';
+  }
+}
+
+/* login handlers */
+$('loginBtn').addEventListener('click', ()=>{
+  const u = $('uname').value.trim(), p = $('pwd').value;
+  const msg = $('loginMsg');
+  if(u === ADMIN_USER && p === ADMIN_PASS){
+    msg.style.display = 'none';
+    sessionStorage.setItem('sp_admin','1'); // persist for session
+    setAuthState(true);
+    // clear inputs
+    $('uname').value=''; $('pwd').value='';
+  } else {
+    msg.style.display = 'block';
+    msg.innerText = 'Invalid username or password';
+  }
+});
+$('cancelBtn').addEventListener('click', ()=>{ /* just hide overlay if user wants */ $('loginOverlay').style.display='none'; });
+
+$('logoutBtn').addEventListener('click', ()=>{
+  sessionStorage.removeItem('sp_admin');
+  setAuthState(false);
+});
+
+/* filter input */
+$('filterInput').addEventListener('input', (e)=> renderTable(e.target.value));
+
+/* init: if session exists, show dashboard, else show login */
+function init(){
+  const authed = !!sessionStorage.getItem('sp_admin');
+  setAuthState(authed);
+  // if authed render
+  if(authed){ renderAnalyticsUI(); renderTable(); }
+}
+init();
+
+/* live refresh */
+setInterval(()=>{ if(!!sessionStorage.getItem('sp_admin')){ renderAnalyticsUI(); renderTable($('filterInput').value); } }, 3000);
+
+/* Accessibility: press Escape to re-open login overlay if closed */
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape'){ if($('loginOverlay').style.display === 'none'){ $('loginOverlay').style.display = 'flex'; } } });
+
+</script>
+</body>
+</html>
